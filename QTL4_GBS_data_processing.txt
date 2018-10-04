@@ -1,0 +1,140 @@
+GBS data processing 
+
+1. demultiplexing 
+fastq-multx -B /data/GBS_Xu/qtl4bgbs/sequence_and_barcode/4bplate1_barcode.txt /data/GBS_Xu/qtl4bgbs/sequence_and_barcode/C6RDLANXX_5_fastq.gz -o /data/GBS_Xu/qtl4bgbs/4b_123_demultiplexed_m1/4bplate1_%_m1.fq
+fastq-multx -B /data/GBS_Xu/qtl4bgbs/sequence_and_barcode/4bplate2_barcode.txt /data/GBS_Xu/qtl4bgbs/sequence_and_barcode/C81KJANXX_1_fastq.gz -o /data/GBS_Xu/qtl4bgbs/4b_123_demultiplexed_m1/4bplate2_%_m1.fq
+fastq-multx -B /data/GBS_Xu/qtl4bgbs/sequence_and_barcode/4bplate3_barcode.txt /data/GBS_Xu/qtl4bgbs/sequence_and_barcode/C81KJANXX_2_fastq.gz -o /data/GBS_Xu/qtl4bgbs/4b_123_demultiplexed_m1/4bplate3_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/4cplate1_barcode_for_fastq.txt /data/qtl4cgbs/sequence_and_barcode/HF2TJBGXY_1_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/4cplate1_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/4cplate2_barcode_for_fastq.txt /data/qtl4cgbs/sequence_and_barcode/CA78JANXX_2_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/4cplate2_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/4cplate3_barcode_for_fastq.txt /data/qtl4cgbs/sequence_and_barcode/CA78JANXX_3_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/4cplate3_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/4cplate4_barcode_for_fastq.txt /data/qtl4cgbs/sequence_and_barcode/CA78JANXX_4_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/4cplate4_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/4cplate5_barcode_for_fastq.txt /data/qtl4cgbs/sequence_and_barcode/CA78JANXX_5_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/4cplate5_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/qtl4_plate9_barcode.txt /data/qtl4cgbs/sequence_and_barcode/CA7A2ANXX_4_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/qtl4plate9_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/qtl4_plate10_barcode.txt /data/qtl4cgbs/sequence_and_barcode/CA7A2ANXX_5_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/qtl4plate10_%_m1.fq
+fastq-multx -B /data/qtl4cgbs/sequence_and_barcode/qtl4_plate11_barcode.txt /data/qtl4cgbs/sequence_and_barcode/CA7A2ANXX_6_fastq.gz -o /data/qtl4cgbs/demultiplexed_m1/qtl4plate11_%_m1.fq
+
+=================================================
+2. read processing
+ls /data/GBS_Xu/qtl4bgbs/4b_123_demultiplexed_m1 | grep 'fq$' | sed -r 's/.fq//' | awk 'BEGIN{ print "#!/bin/bash\n\n" }{ print "fastq-mcf -q 30 -l 50 -o /data/GBS_Xu/qtl4bgbs/4b_123_qc/"$1"_q30l50.fq /data/GBS_Xu/qtl4cgbs/sequence_and_barcode/IlluminaAdapters_V2.fasta /data/GBS_Xu/qtl4bgbs/4b_123_demultiplexed_m1/"$1".fq"}' >/data/GBS_Xu/qtl4bgbs/excutable_script/4b_123_qc.sh
+chmod 755 /data/GBS_Xu/qtl4bgbs/excutable_script/4b_123_qc.sh
+/data/GBS_Xu/qtl4bgbs/excutable_script/4b_123_qc.sh
+
+ls /data/qtl4cgbs/4c_demultiplexed_m1 | grep 'fq$' | sed -r 's/.fq//' | awk 'BEGIN{ print "#!/bin/bash\n\n" }{ print "fastq-mcf -q 30 -l 50 -o /data/qtl4cgbs/4c_qc_m1/"$1"_q30l50.fq /data/qtl4bgbs/Sequence_and_barcode/IlluminaAdapters_V2.fasta /data/qtl4cgbs/4c_demultiplexed_m1/"$1".fq"}' >/data/qtl4cgbs/excutable_script/4c_readprocessing.sh
+chmod 755 /data/qtl4cgbs/excutable_script/4c_readprocessing.sh
+/data/qtl4cgbs/excutable_script/4c_readprocessing.sh
+
+ls /data/GBS_Xu/qtl4cgbs/qtl4_91011_demultiplexed_m1 | grep 'fq$' | sed -r 's/.fq//' | awk 'BEGIN{ print "#!/bin/bash\n\n" }{ print "fastq-mcf -q 30 -l 50 -o /data/GBS_Xu/qtl4cgbs/qtl4_91011_qc_m1/"$1"_q30l50.fq /data/GBS_Xu/qtl4cgbs/sequence_and_barcode/IlluminaAdapters_V2.fasta /data/GBS_Xu/qtl4cgbs/qtl4_91011_demultiplexed_m1/"$1".fq"}' >/data/GBS_Xu/qtl4cgbs/excutable_script/qtl4_91011_readprocessing.sh
+chmod 755 /data/GBS_Xu/qtl4cgbs/excutable_script/qtl4_91011_readprocessing.sh
+/data/GBS_Xu/qtl4cgbs/excutable_script/qtl4_91011_readprocessing.sh
+
+=================================================
+3. post-read-processing QC 
+ls /data/GBS_Xu/qtl4bgbs/4b_123_qc | grep '.fq' | sed -r 's/.fq//' | awk 'BEGIN{ print "#!/bin/bash\n" }{ print "expr $(cat /data/GBS_Xu/qtl4bgbs/4b_123_qc/"$1".fq | wc -l) / 4"}' >/data/GBS_Xu/qtl4bgbs/excutable_script/4b_123_postqc_count.sh
+ls /data/qtl4cgbs/4c_qc_m1 | grep '.fq' | sed -r 's/.fq//' | awk 'BEGIN{ print "#!/bin/bash\n" }{ print "expr $(cat /data/qtl4cgbs/4c_qc_m1/"$1".fq | wc -l) / 4"}' >/data/qtl4cgbs/excutable_script/4c_postqc_count.sh
+ls /data/GBS_Xu/qtl4cgbs/qtl4_91011_qc_m1 | grep '.fq' | sed -r 's/.fq//' | awk 'BEGIN{ print "#!/bin/bash\n" }{ print "expr $(cat /data/GBS_Xu/qtl4cgbs/qtl4_91011_qc_m1/"$1".fq | wc -l) / 4"}' >/data/GBS_Xu/qtl4cgbs/excutable_script/qtl4_91011_postqc_count.sh
+# execute the .sh files as above to obtain postqc read #
+# check postqc read quality in FastQC #
+
+==================================================
+4. mapping reads to L. kohalensis reference genome
+ls /data/GBS_Xu/qtl4bgbs/4b_123_qc | grep 'q30l50.fq' | sed -r 's/_q30l50.fq//' | awk 'BEGIN{ print "#!/bin/bash\n\n"}{ print "bowtie2 -t -p 20 -x /data/bowtieindexes/Lakoh051scf -U /data/GBS_Xu/qtl4bgbs/4b_123_qc/"$1"_q30l50.fq -S /data/GBS_Xu/qtl4bgbs/4b_123_mapped/"$1".sam\nsamtools view -F4 -Sb -o /data/GBS_Xu/qtl4bgbs/4b_123_mapped/"$1".bam /data/GBS_Xu/qtl4bgbs/4b_123_mapped/"$1".sam\nsamtools sort /data/GBS_Xu/qtl4bgbs/4b_123_mapped/"$1".bam /data/GBS_Xu/qtl4bgbs/4b_123_mapped/"$1"_sorted\n\n"}' > /data/GBS_Xu/qtl4bgbs/excutable_script/4b_123_mapping.sh
+ls /data/qtl4cgbs/4c_qc_m1 | grep 'q30l50.fq' | sed -r 's/_q30l50.fq//' | awk 'BEGIN{ print "#!/bin/bash\n\n"}{ print "bowtie2 -t -p 20 -x /data/bowtieindexes/Lakoh051scf -U /data/qtl4cgbs/4c_qc_m1/"$1"_q30l50.fq -S /data/qtl4cgbs/4c_mapped/"$1".sam\nsamtools view -F4 -Sb -o /data/qtl4cgbs/4c_mapped/"$1".bam /data/qtl4cgbs/4c_mapped/"$1".sam\nsamtools sort /data/qtl4cgbs/4c_mapped/"$1".bam /data/qtl4cgbs/4c_mapped/"$1"_sorted\n\n"}' > /data/qtl4cgbs/excutable_script/4c_mapping.sh
+ls /data/GBS_Xu/qtl4cgbs/qtl4_91011_qc_m1 | grep 'q30l50.fq' | sed -r 's/_q30l50.fq//' | awk 'BEGIN{ print "#!/bin/bash\n\n"}{ print "bowtie2 -t -p 20 -x /data/bowtieindexes/Lakoh051scf -U /data/GBS_Xu/qtl4cgbs/qtl4_91011_qc_m1/"$1"_q30l50.fq -S /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped/"$1".sam\nsamtools view -F4 -Sb -o /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped/"$1".bam /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped/"$1".sam\nsamtools sort /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped/"$1".bam /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped/"$1"_sorted\n\n"}' > /data/GBS_Xu/qtl4cgbs/excutable_script/qtl4_91011_mapping.sh
+
+ls /data/GBS_Xu/qtl4bgbs/4b_123_mapped | grep 'sorted.bam' | awk 'BEGIN{ print"#! /bin/bash\n"}{ print "samtools view -F 4 -c /data/GBS_Xu/qtl4bgbs/4b_123_mapped/"$1""}' >/data/GBS_Xu/qtl4bgbs/excutable_script/4b_123_mapping_count.sh
+ls /data/qtl4cgbs/4c_mapped | grep 'sorted.bam' | awk 'BEGIN{ print"#! /bin/bash\n"}{ print "samtools view -F 4 -c /data/qtl4cgbs/4c_mapped/"$1""}' >/data/qtl4cgbs/excutable_script/4c_mapped_count.sh
+ls /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped | grep 'sorted.bam' | awk 'BEGIN{ print"#! /bin/bash\n"}{ print "samtools view -F 4 -c /data/GBS_Xu/qtl4cgbs/qtl4_91011_mapped/"$1""}' >/data/GBS_Xu/qtl4cgbs/excutable_script/qtl4_91011_mapped_count.sh
+
+==================================================
+5. Add read group tags for individual bam, combine bams into one file per family, sort bam files
+# I made bamaddrg.sh file using concatenate function in excel with sample names per family #
+# bamaddrg adds read group to individual bam files, then combine them into one file #
+# use samtools view to make sure every sample gets a @RG #
+
+cd /data/GBS_Xu/softwares/bamaddrg
+chmod 755 /data/GBS_Xu/qtl4bgbs/excutable_script/4b.1_bamaddrg.sh 
+/data/GBS_Xu/qtl4bgbs/excutable_script/4b.1_bamaddrg.sh 
+samtools view -H /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.1_combined.bam | grep '@RG' | wc -l
+samtools sort /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.1_combined.bam /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.1_combined.bam
+
+chmod 755 /data/GBS_Xu/qtl4bgbs/excutable_script/4b.2_bamaddrg.sh 
+/data/GBS_Xu/qtl4bgbs/excutable_script/4b.2_bamaddrg.sh 
+samtools view -H /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.2_combined.bam | grep '@RG' | wc -l
+samtools sort /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.2_combined.bam /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.2_combined.bam
+
+chmod 755 /data/GBS_Xu/qtl4bgbs/excutable_script/4b.3_bamaddrg.sh 
+/data/GBS_Xu/qtl4bgbs/excutable_script/4b.3_bamaddrg.sh 
+samtools view -H /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.3_combined.bam | grep '@RG' | wc -l
+samtools sort /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.3_combined.bam /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.3_combined.bam
+
+chmod 755 /data/GBS_Xu/qtl4cgbs/excutable_script/4c.5_bamaddrg.sh 
+/data/GBS_Xu/qtl4cgbs/excutable_script/4c.5_bamaddrg.sh
+samtools view -H /data/GBS_Xu/qtl4cgbs/4c.5_mapped/4c.5_combined.bam | grep '@RG' | wc -l
+samtools sort /data/GBS_Xu/qtl4cgbs/4c.5_mapped/4c.5_combined.bam /data/GBS_Xu/qtl4cgbs/4c.5_mapped/4c.5_combined_sorted.bam
+
+chmod 755 /data/GBS_Xu/qtl4cgbs/excutable_script/4c.9_ril9_lklp_bamaddrg.sh 
+/data/GBS_Xu/qtl4cgbs/excutable_script/4c.9_ril9_lklp_bamaddrg.sh 
+samtools view -H /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_ril9_lklp_combined.bam | grep '@RG' | wc -l
+samtools sort /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_ril9_lklp_combined.bam /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_ril9_lklp_combined_sorted.bam
+
+chmod 755 /data/GBS_Xu/qtl4egbs/excutable_script/4e_f2_likp_ril8_bamaddrg.sh 
+/data/GBS_Xu/qtl4egbs/excutable_script/4e_f2_likp_ril8_bamaddrg.sh 
+samtools view -H /data/GBS_Xu/qtl4egbs/4e_mapped/4e_f2_lklp_ril8_combined.bam | grep '@RG' | wc -l
+samtools sort /data/GBS_Xu/qtl4egbs/4e_mapped/4e_f2_lklp_ril8_combined.bam /data/GBS_Xu/qtl4egbs/4e_mapped/4e_f2_lklp_ril8_combined.bam
+
+============================================
+6. call SNPs within each family
+freebayes -i -X -u -b /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.1_combined.bam -v /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_snp_mnc6.vcf -f /data/bowtieindexes/Lakoh051scf.fa --min-coverage 6 --read-mismatch-limit 2
+freebayes -i -X -u -b /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.2_combined.bam -v /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_snp_mnc6.vcf -f /data/bowtieindexes/Lakoh051scf.fa --min-coverage 6 --read-mismatch-limit 2
+freebayes -i -X -u -b /data/GBS_Xu/qtl4bgbs/4b_mapped_all/4b.3_combined.bam -v /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_snp_mnc6.vcf -f /data/bowtieindexes/Lakoh051scf.fa --min-coverage 6 --read-mismatch-limit 2
+freebayes -i -X -u -b /data/GBS_Xu/qtl4cgbs/4c.5_mapped/4c.5_combined_sorted.bam -v /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_mnc6.vcf -f /data/bowtieindexes/Lakoh051scf.fa --min-coverage 6 --read-mismatch-limit 2
+freebayes -i -X -u -b /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_ril9_lklp_combined_sorted.bam -v /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6.vcf -f /data/bowtieindexes/Lakoh051scf.fa --min-coverage 6 --read-mismatch-limit 2
+freebayes -i -X -u -b /data/GBS_Xu/qtl4egbs/4e_mapped/4e_f2_lklp_ril8_combined_sorted.bam -v /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_snp_mnc6.vcf -f /data/bowtieindexes/Lakoh051scf.fa --min-coverage 6 --read-mismatch-limit 2
+
+grep -v '#' /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_snp_mnc6.vcf | wc -l 
+grep -v '#' /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_snp_mnc6.vcf | wc -l
+grep -v '#' /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_snp_mnc6.vcf | wc -l
+grep -v '#' /data/qtl4cgbs/4c_snp_mnc6/4c.5_snp_mnc6.vcf | wc -l 
+grep -v '#' /data/qtl4cgbs/4c_snp_mnc6/4c.9_snp_mnc6.vcf | wc -l 
+grep -v '#' /data/GBS_Xu/qtl4egbs/4e_mapped/4e_f2_lklp_ril8_snp_mnc6.vcf | wc -l
+
+================================================
+7. soft and hard filtering of SNPs
+vcftools --vcf /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_snp_mnc6.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.025 --max-missing 0.8 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_p_lklp_c6_miss20_maf0.025_mindp5
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_p_lklp_c6_miss20_maf0.025_mindp5.vcf > /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_p_lklp_c6_miss20_maf0.025_mindp5_hardfil.vcf
+
+vcftools --vcf /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_snp_mnc6.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.025 --max-missing 0.8 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_p_lklp_c6_miss20_maf0.025_mindp5
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_p_lklp_c6_miss20_maf0.025_mindp5.vcf > /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_p_lklp_c6_miss20_maf0.025_mindp5_hardfil.vcf
+
+vcftools --vcf /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_snp_mnc6.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.025 --max-missing 0.8 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_p_lklp_c6_miss20_maf0.025_mindp5
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_p_lklp_c6_miss20_maf0.025_mindp5.vcf > /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_p_lklp_c6_miss20_maf0.025_mindp5_hardfil.vcf
+
+vcftools --vcf /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_mnc6.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.025 --max-missing 0.8 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_c6_miss20_maf0.025_mindp5
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_c6_miss20_maf0.025_mindp5.vcf > /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_c6_miss20_maf0.025_mindp5_hardfil.vcf
+
+vcftools --vcf /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.025 --max-missing 0.8 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_miss20_maf0.025_mindp5
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_miss20_maf0.025_mindp5.vcf > /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_miss20_maf0.025_mindp5_hardfil.vcf
+
+vcftools --vcf /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_snp_mnc6.vcf --min-alleles 2 --max-alleles 2 --max-missing 0.8 --maf 0.025 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_c6_miss20_maf0.025_mndp5.vcf
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_c6_miss20_maf0.025_mndp5.vcf > /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_c6_miss20_maf0.025_mndp5_hardfil.vcf
+
+==================================================
+8. obtain number of SNPs and mean depth statistics
+grep -v '#' /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_p_lklp_c6_miss20_maf0.025_mndp5_hardfil.vcf | wc -l
+grep -v '#' /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_p_lklp_c6_miss20_maf0.025_mndp5_hardfil.vcf | wc -l
+grep -v '#' /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_p_lklp_c6_miss20_maf0.025_mndp5_hardfil.vcf | wc -l
+grep -v '#' /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_c6_miss20_maf0.025_mndp5_hardfil.vcf | wc -l 
+grep -v '#' /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_c6_miss20_maf0.025_mndp5_hardfil.vcf | wc -l 
+grep -v '#' /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_snp_c6_miss20_maf0.025_mndp5_hardfil.vcf | wc -l
+
+vcftools --vcf /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.1_p_lklp_c6_miss20_maf0.025_mindp5_hardfil.vcf --site-mean-depth --out /data/GBS_Xu/qtl4bgbs/4b_reports/4b.1_mindp5_siteDP
+vcftools --vcf /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.2_p_lklp_c6_miss20_maf0.025_mindp5_hardfil.vcf --site-mean-depth --out /data/GBS_Xu/qtl4bgbs/4b_reports/4b.2_mindp5_siteDP
+vcftools --vcf /data/GBS_Xu/qtl4bgbs/4b_SNP/4b.3_p_lklp_c6_miss20_maf0.025_mindp5_hardfil.vcf --site-mean-depth --out /data/GBS_Xu/qtl4bgbs/4b_reports/4b.3_mindp5_siteDP
+vcftools --vcf /data/GBS_Xu/qtl4cgbs/4c.5_snp/4c.5_snp_c6_miss20_maf0.025_mindp5_hardfil.vcf --site-mean-depth --out /data/GBS_Xu/qtl4cgbs/4c_reports/4c.5_mindp5_siteDP
+vcftools --vcf /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_miss20_maf0.025_mindp5_hardfil.vcf --site-mean-depth --out /data/GBS_Xu/qtl4cgbs/4c_reports/4c.9_mindp5_siteDP
+vcftools --vcf /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_c6_miss20_maf0.025_mndp5_hardfil.vcf --site-mean-depth --out /data/GBS_Xu/qtl4egbs/4e_reports/4e_mindp5_siteDP
+
+=================================================
+9. convert vcf files to hapmap (ABH format)
+cd /data/GBS_Xu/softwares/tassel4-standalone
+perl start_tassel.pl
