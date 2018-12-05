@@ -1,0 +1,495 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf100
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red255\green39\blue18;}
+{\*\expandedcolortbl;;\csgenericrgb\c100000\c15294\c7059;}
+\margl1440\margr1440\vieww15760\viewh9900\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 ## QTL4B.1 ##\
+> library(qtl)\
+> qtl4b.1.m<-read.cross(format="csv",file="4B.1_m_miss20_mindp5_map4_qtl.csv")\
+> qtl4b.1.m.gp.1<-calc.genoprob(qtl4b.1.m,step=1,map.function=c("kosambi"),error.prob=0.001)\
+> qtl4b.1.m.one.1<-scanone(qtl4b.1.m.gp.1)\
+> summary(qtl4b.1.m.one.1)\
+> qtl4b.1.m.one.1.perm<-scanone(qtl4b.1.m.gp.1, n.perm=20000, verbose=FALSE)\
+\
+> qtl4b.1.m.two<-scantwo(qtl4b.1.m.gp.1)\
+ --Running scanone\
+ --Running scantwo\
+> summary(qtl4b.1.m.two)\
+ \
+> qtl4b.1.m.sim.1<-sim.geno(qtl4b.1.m.gp.1,step=1,n.draw=20000,map.function=c("kosambi"),err=0.001)\
+> qtl4b.1.m.perm2.hk.1000.1<-scantwo(qtl4b.1.m.sim.1,method="hk",n.perm=1000)\
+> summary(qtl4b.1.m.perm2.hk.1000.1)\
+> qtl4b.1.m.pen.1<-calc.penalties(qtl4b.1.m.perm2.hk.1000.1)\
+> print(qtl4b.1.m.pen.1)\
+\
+> qtl4b.1.m.make1.1<-makeqtl(qtl4b.1.m.sim.1,chr=5,pos=17.5)\
+> qtl4b.1.m.fit.make1.1<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.make1.1,formula=y~Q1)\
+> summary(qtl4b.1.m.fit.make1.1)\
+> qtl4b.1.m.refine1.1<-refineqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.make1.1,formula=y~Q1,verbose=FALSE)\
+> summary(qtl4b.1.m.refine1.1)\
+> qtl4b.1.m.fit.reinfe1.1<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine1.1,formula=y~Q1)\
+> summary(qtl4b.1.m.fit.reinfe1.1)\
+> qtl4b.1.m.add1<-addqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine1.1,formula=y~Q1+Q2)\
+> summary(qtl4b.1.m.add1)\
+\
+> qtl4b.1.m.make2.1<-makeqtl(qtl4b.1.m.sim.1,chr=c(5,7),pos=c(17.5,45))\
+> qtl4b.1.m.fit.make2.1<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.make2.1,formula=y~Q1+Q2)\
+> summary(qtl4b.1.m.fit.make2.1)\
+> qtl4b.1.m.refine2.1<-refineqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.make2.1,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4b.1.m.refine2.1)\
+> qtl4b.1.m.fit.refine2.1<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine2.1,formula=y~Q1+Q2)\
+> summary(qtl4b.1.m.fit.refine2.1)\
+> addint(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine2.1,formula=y~Q1+Q2)\
+> qtl4b.1.m.add2<-addqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine2.1,formula=y~Q1+Q2+Q3)\
+> summary(qtl4b.1.m.add2)\
+\
+> qtl4b.1.m.make3.1<-makeqtl(qtl4b.1.m.sim.1,chr=c(1,5,7),pos=c(64,17.5,45))\
+> qtl4b.1.m.fit.make3.1<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.make3.1,formula=y~Q1+Q2+Q3)\
+> summary(qtl4b.1.m.fit.make3.1)\
+> qtl4b.1.m.refine3.1<-refineqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.make3.1,formula=y~Q1+Q2+Q3,verbose=FALSE)\
+> summary(qtl4b.1.m.refine3.1)\
+> qtl4b.1.m.fit.refine3.1<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine3.1,formula=y~Q1+Q2+Q3)\
+> summary(qtl4b.1.m.fit.refine3.1)\
+> addint(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine3.1,formula=y~Q1+Q2+Q3)\
+> qtl4b.1.m.add3<-addqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine3.1,formula=y~Q1+Q2+Q3+Q4)\
+> summary(qtl4b.1.m.add3)\
+\
+> qtl4b.1.m.fit.refine2.1$lod-qtl4b.1.m.fit.reinfe1.1$lod\
+> qtl4b.1.m.fit.refine3.1$lod-qtl4b.1.m.fit.refine2.1$lod\
+\
+> find.marker(qtl4b.1.m.sim.1,chr=1,pos=64)\
+> find.marker(qtl4b.1.m.sim.1,chr=5,pos=17.9)\
+> find.marker(qtl4b.1.m.sim.1,chr=7,pos=45)\
+> qtl4b.1.m.q2.eff.1<-effectplot(qtl4b.1.m.sim.1,mname1="S001065_139337",draw=FALSE)\
+> qtl4b.1.m.q2.eff.1\
+> qtl4b.1.m.eff<-fitqtl(qtl4b.1.m.sim.1,qtl=qtl4b.1.m.refine3.1,formula=y~Q1+Q2+Q3,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4b.1.m.eff)\
+\
+> lodint(qtl4b.1.m.one.1,chr=5)\
+> lodint(qtl4b.1.m.one.1,chr=5,expandtomarker=TRUE)\
+> lodint(qtl4b.1.m.refine3.1,qtl.index=2)\
+> lodint(qtl4b.1.m.refine3.1,qtl.index=2,expandtomarker=TRUE)\
+> lodint(qtl4b.1.m.refine3.1,qtl.index=1)\
+> lodint(qtl4b.1.m.refine3.1,qtl.index=3)\
+\
+=====================================================\
+## QTL4B.2 ##\
+\
+> qtl4b.2.m<-read.cross(format="csv",file="4B.2_m_miss20_mindp5_map4_qtl.csv")\
+> qtl4b.2.m.gp.1<-calc.genoprob(qtl4b.2.m,step=1,map.function=c("kosambi"),error.prob=0.001)\
+> qtl4b.2.m.one.1<-scanone(qtl4b.2.m.gp.1)\
+> summary(qtl4b.2.m.one.1)\
+> qtl4b.2.m.one.1.perm<-scanone(qtl4b.2.m.gp.1, n.perm=20000, verbose=FALSE)\
+> summary(qtl4b.2.m.one.1.perm)\
+\
+> qtl4b.2.m.two<-scantwo(qtl4b.2.m.gp.1)\
+ --Running scanone\
+ --Running scantwo\
+> summary(qtl4b.2.m.two)\
+ \
+> qtl4b.2.m.sim.1<-sim.geno(qtl4b.2.m.gp.1,step=1,n.draw=20000,map.function=c("kosambi"),err=0.001)\
+> qtl4b.2.m.perm2.hk.1000.1<-scantwo(qtl4b.2.m.sim.1,method="hk",n.perm=1000)\
+Doing permutation in batch mode ...\
+> summary(qtl4b.2.m.perm2.hk.1000.1)\
+> qtl4b.1.m.pen.1<-calc.penalties(qtl4b.1.m.perm2.hk.1000.1)\
+> print(qtl4b.1.m.pen.1)\
+   \
+> qtl4b.2.m.make1.1<-makeqtl(qtl4b.2.m.sim.1,chr=5,pos=13)\
+> qtl4b.2.m.fit.make1.1<-fitqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.make1.1,formula=y~Q1)\
+> summary(qtl4b.2.m.fit.make1.1)\
+> qtl4b.2.m.refine1.1<-refineqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.make1.1,formula=y~Q1,verbose=FALSE)\
+> summary(qtl4b.2.m.refine1.1)\
+> qtl4b.2.m.fit.refine1.1<-fitqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.refine1.1,formula=y~Q1)\
+> summary(qtl4b.2.m.fit.refine1.1)\
+> qtl4b.2.m.add1<-addqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.refine1.1,formula=y~Q1+Q2)\
+> summary(qtl4b.2.m.add1)\
+\
+> qtl4b.2.m.make2.1<-makeqtl(qtl4b.2.m.sim.1,chr=c(5,7),pos=c(13,30))\
+> qtl4b.2.m.fit.make2.1<-fitqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.make2.1,formula=y~Q1+Q2)\
+> summary(qtl4b.2.m.fit.make2.1)\
+> qtl4b.2.m.refine2.1<-refineqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.make2.1,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4b.2.m.refine2.1)\
+> qtl4b.2.m.fit.refine2.1<-fitqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.refine2.1,formula=y~Q1+Q2)\
+> summary(qtl4b.2.m.fit.refine2.1)\
+> addint(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.refine2.1,formula=y~Q1+Q2)\
+> qtl4b.2.m.add2<-addqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.refine2.1,formula=y~Q1+Q2+Q3)\
+> summary(qtl4b.2.m.add2)\
+\
+> qtl4b.2.m.fit.refine2.1$lod-qtl4b.2.m.fit.refine1.1$lod\
+\
+> find.marker(qtl4b.2.m.sim.1,chr=5,pos=15)\
+> find.marker(qtl4b.2.m.sim.1,chr=7,pos=30)\
+> qtl4b.2.m.eff<-fitqtl(qtl4b.2.m.sim.1,qtl=qtl4b.2.m.refine2.1,formula=y~Q1+Q2,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4b.2.m.eff)\
+\
+> lodint(qtl4b.2.m.one.1,chr=5)\
+> lodint(qtl4b.2.m.refine2.1,qtl.index=1)\
+> lodint(qtl4b.2.m.refine2.1,qtl.index=1,expandtomarker=TRUE)\
+> lodint(qtl4b.2.m.refine2.1,qtl.index=2)\
+\
+======================================================\
+## QTL4B.3 ##\
+\
+> qtl4b.3.m<-read.cross(format="csv",file="4B.3_m_miss20_mindp5_map4_qtl.csv")\
+> qtl4b.3.m.gp.1<-calc.genoprob(qtl4b.3.m,step=1,map.function=c("kosambi"),error.prob=0.001)\
+> qtl4b.3.m.one.1<-scanone(qtl4b.3.m.gp.1)\
+> summary(qtl4b.3.m.one.1)\
+> qtl4b.3.m.one.1.perm<-scanone(qtl4b.3.m.gp.1, n.perm=20000, verbose=FALSE)\
+> summary(qtl4b.3.m.one.1.perm)\
+\
+> qtl4b.3.m.two<-scantwo(qtl4b.3.m.gp.1)\
+ --Running scanone\
+ --Running scantwo\
+> summary(qtl4b.3.m.two)\
+\
+> qtl4b.3.m.sim.1<-sim.geno(qtl4b.3.m.gp.1,step=1,n.draw=20000,map.function=c("kosambi"),err=0.001)\
+> qtl4b.3.m.perm2.hk.1000.1<-scantwo(qtl4b.3.m.sim.1,method="hk",n.perm=1000)\
+Doing permutation in batch mode ...\
+> summary(qtl4b.3.m.perm2.hk.1000.1)\
+> qtl4b.3.m.pen.1<-calc.penalties(qtl4b.3.m.perm2.hk.1000.1)\
+> print(qtl4b.3.m.pen.1)\
+\
+> qtl4b.3.m.make1.1<-makeqtl(qtl4b.3.m.sim.1,chr=1,pos=34)\
+> qtl4b.3.m.fit.make1.1<-fitqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.make1.1,formula=y~Q1)\
+> summary(qtl4b.3.m.fit.make1.1)\
+> qtl4b.3.m.refine1.1<-refineqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.make1.1,formula=y~Q1,verbose=FALSE)\
+> summary(qtl4b.3.m.refine1.1)\
+> qtl4b.3.m.fit.reinfe1.1<-fitqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.refine1.1,formula=y~Q1)\
+> summary(qtl4b.3.m.fit.reinfe1.1)\
+> qtl4b.3.m.add1<-addqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.refine1.1,formula=y~Q1+Q2)\
+> summary(qtl4b.3.m.add1)\
+ \
+> qtl4b.3.m.make2.1<-makeqtl(qtl4b.3.m.sim.1,chr=c(1,7),pos=c(35,44.4))\
+> qtl4b.3.m.fit.make2.1<-fitqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.make2.1,formula=y~Q1+Q2)\
+> summary(qtl4b.3.m.fit.make2.1)\
+> qtl4b.3.m.refine2.1<-refineqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.make2.1,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4b.3.m.refine2.1)\
+> qtl4b.3.m.fit.refine2.1<-fitqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.refine2.1,formula=y~Q1+Q2)\
+> summary(qtl4b.3.m.fit.refine2.1)\
+> addint(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.refine2.1,formula=y~Q1+Q2)\
+> qtl4b.3.m.add2<-addqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.refine2.1,formula=y~Q1+Q2+Q3)\
+> summary(qtl4b.3.m.add2)\
+\
+> qtl4b.3.m.fit.refine2.1$lod-qtl4b.3.m.fit.reinfe1.1$lod\
+\
+> find.marker(qtl4b.3.m,chr=1,pos=41)\
+> find.marker(qtl4b.3.m,chr=7,pos=44)\
+> qtl4b.3.m.eff<-fitqtl(qtl4b.3.m.sim.1,qtl=qtl4b.3.m.refine2.1,formula=y~Q1+Q2,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4b.3.m.eff)\
+> lodint(qtl4b.3.m.refine2.1,qtl.index=1)\
+> lodint(qtl4b.3.m.refine2.1,qtl.index=2)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\partightenfactor0
+\cf0 ==========================================\
+## QTL4C.5 ##\
+> qtl4c.5.m<-read.cross(format="csv",file="4C.5_m_miss20_mindp5_map4_qtl.csv")\
+ --Read the following data:\
+	 85  individuals\
+	 155  markers\
+	 3  phenotypes\
+ --Cross type: f2 \
+> \
+> qtl4c.5.m.gp.02<-calc.genoprob(qtl4c.5.m,step=0.2,map.function=c("kosambi"),error.prob=0.001)\
+> qtl4c.5.m.one.02<-scanone(qtl4c.5.m.gp.02)\
+> summary(qtl4c.5.m.one.02)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 > qtl4c.5.m.one.02.perm<-scanone(qtl4c.5.m.gp.02, n.perm=20000, verbose=FALSE)\
+> summary(qtl4c.5.m.one.02.perm)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\partightenfactor0
+\cf0 > qtl4c.5.m.two.02<-scantwo(qtl4c.5.m.gp.02)\
+ --Running scanone\
+ --Running scantwo\
+> summary(qtl4c.5.m.two.02)\
+\
+> qtl4c.5.m.sim.02<-sim.geno(qtl4c.5.m.gp.02,step=0.2,n.draw=10000,map.function=c("kosambi"),err=0.001)\
+> summary(qtl4c.5.perm2.hk.1000.02)\
+> qtl4c.5.perm2.hk.1000.02<-scantwo(qtl4c.5.m.sim.02,method="hk",n.perm=1000)\
+> qtl4c.5.pen.02<-calc.penalties(qtl4c.5.perm2.hk.1000.02)\
+> print(qtl4c.5.pen.02)\
+  \
+> qtl4c.5.m.make1.02<-makeqtl(qtl4c.5.m.sim.02,chr=5,pos=20.72)\
+> qtl4c.5.m.fit.make1.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make1.02,formula=y~Q1)\
+> summary(qtl4c.5.m.fit.make1.02)\
+> qtl4c.5.m.refine1.02<-refineqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make1.02,formula=y~Q1,verbose=FALSE)\
+> summary(qtl4c.5.m.refine1.02)\
+> qtl4c.5.m.add1<-addqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine1.02,formula=y~Q1+Q2)\
+> summary(qtl4c.5.m.add1)\
+\
+> qtl4c.5.m.make2.02<-makeqtl(qtl4c.5.m.sim.02,chr=c(3,5),pos=c(59.8,21.6))\
+> qtl4c.5.m.fit.make2.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make2.02,formula=y~Q1+Q2)\
+> summary(qtl4c.5.m.fit.make2.02)\
+> qtl4c.5.m.refine2.02<-refineqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make2.02,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4c.5.m.refine2.02)\
+> qtl4c.5.m.fit.refine2.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine2.02,formula=y~Q1+Q2)\
+> summary(qtl4c.5.m.fit.refine2.02)\
+> addint(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine2.02,formula=y~Q1+Q2)\
+> qtl4c.5.m.add2<-addqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine2.02,formula=y~Q1+Q2+Q3)\
+> summary(qtl4c.5.m.add2)\
+\
+> qtl4c.5.m.make3.02<-makeqtl(qtl4c.5.m.sim.02,chr=c(3,5,5),pos=c(59.8,11.2,21.6))\
+> qtl4c.5.m.fit.make3.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make3.02,formula=y~Q1+Q2+Q3)\
+> summary(qtl4c.5.m.fit.make3.02)\
+> qtl4c.5.m.refine3.02<-refineqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make3.02,formula=y~Q1+Q2+Q3,verbose=FALSE)\
+> summary(qtl4c.5.m.refine3.02)\
+> qtl4c.5.m.fit.refine3.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine3.02,formula=y~Q1+Q2+Q3)\
+> summary(qtl4c.5.m.fit.refine3.02)\
+> addint(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine3.02,formula=y~Q1+Q2+Q3)\
+> qtl4c.5.m.add3<-addqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine3.02,formula=y~Q1+Q2+Q3+Q4)\
+> summary(qtl4c.5.m.add3)\
+\
+> qtl4c.5.m.make4.02<-makeqtl(qtl4c.5.m.sim.02,chr=c(1,3,5,5),pos=c(2.09,59.8,11.2,21.2))\
+> qtl4c.5.m.fit.make4.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make4.02,formula=y~Q1+Q2+Q3+Q4)\
+> summary(qtl4c.5.m.fit.make4.02)\
+> qtl4c.5.m.refine4.02<-refineqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make4.02,formula=y~Q1+Q2+Q3+Q4,verbose=FALSE)\
+> summary(qtl4c.5.m.refine4.02)\
+> summary(qtl4c.5.m.refine4.02)\
+> qtl4c.5.m.fit.refine4.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine4.02,formula=y~Q1+Q2+Q3+Q4)\
+> summary(qtl4c.5.m.fit.refine4.02)\
+> addint(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine4.02,formula=y~Q1+Q2+Q3+Q4)\
+> qtl4c.5.m.add4<-addqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine4.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+> summary(qtl4c.5.m.add4)\
+\
+> qtl4c.5.m.make5.02<-makeqtl(qtl4c.5.m.sim.02,chr=c(1,3,5,5,7),pos=c(2.1,60,11.5,21.2,36.2))\
+> qtl4c.5.m.fit.make5.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make5.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+> summary(qtl4c.5.m.fit.make5.02)\
+> qtl4c.5.m.refine5.02<-refineqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make5.02,formula=y~Q1+Q2+Q3+Q4+Q5,verbose=FALSE)\
+> summary(qtl4c.5.m.refine5.02)\
+> qtl4c.5.m.fit.refine5.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine5.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+> summary(qtl4c.5.m.fit.refine5.02)\
+> addint(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine5.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+> qtl4c.5.m.add5<-addqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine5.02,formula=y~Q1+Q2+Q3+Q4+Q5+Q6)\
+> summary(qtl4c.5.m.add5)\
+\
+> qtl4c.5.m.make6.02<-makeqtl(qtl4c.5.m.sim.02,chr=c(1,2,3,5,5,7),pos=c(0.5,50.68,60.9,11.5,21.2,36.2))\
+> qtl4c.5.m.fit.make6.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make6.02,formula=y~Q1+Q2+Q3+Q4+Q5+Q6)\
+> summary(qtl4c.5.m.fit.make6.02)\
+> qtl4c.5.m.refine6.02<-refineqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.make6.02,formula=y~Q1+Q2+Q3+Q4+Q5+Q6,verbose=FALSE)\
+> summary(qtl4c.5.m.refine6.02)\
+> qtl4c.5.m.fit.refine6.02<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine6.02,formula=y~Q1+Q2+Q3+Q4+Q5+Q6)\
+> summary(qtl4c.5.m.fit.refine6.02)\cf2 \
+\cf0 > qtl4c.5.m.add6<-addqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine6.02,formula=y~Q1+Q2+Q3+Q4+Q5+Q6+Q7)\
+> summary(qtl4c.5.m.add6)\
+\
+> qtl4c.5.m.fit.refine6.02$lod-qtl4c.5.m.fit.refine5.02$lod\
+> qtl4c.5.m.fit.refine5.02$lod-qtl4c.5.m.fit.refine4.02$lod\
+> qtl4c.5.m.fit.refine4.02$lod-qtl4c.5.m.fit.refine3.02$lod\
+> qtl4c.5.m.fit.refine3.02$lod-qtl4c.5.m.fit.refine2.02$lod\
+> qtl4c.5.m.fit.refine2.02$lod-qtl4c.5.m.fit.refine1.02$lod\
+\
+> find.marker(qtl4c.5.m,chr=1,pos=0.55)\
+> find.marker(qtl4c.5.m,chr=2,pos=50.68)\
+> find.marker(qtl4c.5.m,chr=3,pos=60.89)\
+> find.marker(qtl4c.5.m,chr=7,pos=39.11)\
+> find.marker(qtl4c.5.m.sim.02,chr=5,pos=21.2)\
+> qtl4c.5.eff<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine6.02,formula=y~Q1+Q2+Q3+Q4+Q5+Q6,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4c.5.eff)\
+> qtl4c.5.eff.lg5<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine6.02,formula=y~Q4+Q5,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4c.5.eff.lg5)\
+> qtl4c.5.eff.lg5.major<-fitqtl(qtl4c.5.m.sim.02,qtl=qtl4c.5.m.refine6.02,formula=y~Q5,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4c.5.eff.lg5.major)\
+\
+> lodint(qtl4c.5.m.one.02,chr=5)\
+> lodint(qtl4c.5.m.one.02,chr=5,expandtomarkers=TRUE)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=1)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=2)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=3)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=4)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=4,expandtomarkers=TRUE)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=5)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=5,expandtomarkers=TRUE)\
+> lodint(qtl4c.5.m.refine6.02,qtl.index=6)\
+\
+======================================================\
+## QTL4C.9 ##\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 > qtl4c.9.m<-read.cross(format="csv",file="4C.9_m_lg5miss20_mindp5_map4_qtl.csv")\
+> qtl4c.9.m.gp.02<-calc.genoprob(qtl4c.9.m,step=0.2,map.function=c("kosambi"),error.prob=0.001)\
+> qtl4c.9.m.one.02<-scanone(qtl4c.9.m.gp.02)\
+> summary(qtl4c.9.m.one.02)\
+> qtl4c.9.m.int.one.imp<-scanone(qtl4c.9.m.sim.02,method="imp")\
+> summary(qtl4c.9.m.int.one.imp)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 > qtl4c.9.m.one.02.perm<-scanone(qtl4c.9.m.gp.02, n.perm=20000, verbose=FALSE)\
+> summary(qtl4c.9.m.one.02.perm)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 > qtl4c.9.m.two.02<-scantwo(qtl4c.9.m.gp.02)\
+ --Running scanone\
+ --Running scantwo\
+> summary(qtl4c.9.m.two.02)\
+\
+> qtl4c.9.m.sim.02<-sim.geno(qtl4c.9.m.gp.02,step=0.2,n.draw=5000,map.function=c("kosambi"),err=0.001)\
+> set.seed(85842519)\
+> qtl4c.9.m.perm2.02.a<-scantwo(qtl4c.9.m.sim.02,method="hk",n.perm=250)\
+> save(qtl4c.9.m.perm2.02.a,file="/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.a.RData") \
+> set.seed(85842520)\
+> qtl4c.9.m.perm2.02.b<-scantwo(qtl4c.9.m.sim.02,method="hk",n.perm=250)\
+> save(qtl4c.9.m.perm2.02.b,file="/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.b.RData")\
+> set.seed(85842530)\
+> qtl4c.9.m.perm2.02.c<-scantwo(qtl4c.9.m.sim.02,method="hk",n.perm=250)\
+> save(qtl4c.9.m.perm2.02.c,file="/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.c.RData")\
+> set.seed(85842540)\
+> qtl4c.9.m.perm2.02.d<-scantwo(qtl4c.9.m.sim.02,method="hk",n.perm=250)\
+> save(qtl4c.9.m.perm2.02.d,file="/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.d.RData")\
+> load("/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.b.RData")\
+> load("/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.a.RData")\
+> load("/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.c.RData")\
+> load("/data/GBS_Xu/QTL_mapping/Mapping_map4/qtl4c.9.m.perm2.02.d.RData")\
+> qtl4c.9.m.perm2.02<-c(qtl4c.9.m.perm2.02.a,qtl4c.9.m.perm2.02.b,qtl4c.9.m.perm2.02.c,qtl4c.9.m.perm2.02.d)\
+> summary(qtl4c.9.m.perm2.02)\
+> qtl4c.9.m.pen.02<-calc.penalties(qtl4c.9.m.perm2.02)\
+> print(qtl4c.9.m.pen.02)\
+\
+> qtl4c.9.m.make1.02<-makeqtl(qtl4c.9.m.sim.02,chr=5,pos=26.2)\
+> qtl4c.9.m.refine1.02<-refineqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.make1.02,formula=y~Q1,verbose=FALSE)\
+> summary(qtl4c.9.m.refine1.02)\
+> qtl4c.9.m.fit.refine1.02<-fitqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.refine1.02,formula=y~Q1)\
+> summary(qtl4c.9.m.fit.refine1.02)\
+> qtl4c.9.m.add1<-addqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.refine1.02,formula=y~Q1+Q2)\
+> summary(qtl4c.9.m.add1)\
+\
+> qtl4c.9.m.make2.02<-makeqtl(qtl4c.9.m.sim.02,chr=c(5,5),pos=c(1.09,26.4))\
+> qtl4c.9.m.refine2.02<-refineqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.make2.02,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4c.9.m.refine2.02)\
+> addint(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.refine2.02,formula=y~Q1+Q2)\
+> qtl4c.9.m.fit.refine2.02<-fitqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.refine2.02,formula=y~Q1+Q2)\
+> summary(qtl4c.9.m.fit.refine2.02)\
+> qtl4c.9.m.make2.02.prob<-makeqtl(qtl4c.9.m.gp.02,chr=c(5,5),pos=c(1.09,26.4),what="prob")\
+> qtl4c.9.m.refine2.02<-refineqtl(qtl4c.9.m.gp.02,qtl=qtl4c.9.m.make2.02.prob,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4c.9.m.refine2.02)\
+> qtl4c.9.m.add2<-addqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.refine2.02,formula=y~Q1+Q2+Q3)\
+> summary(qtl4c.9.m.add2)\
+\
+> qtl4c.9.m.q1.eff<-effectplot(qtl4c.9.m.sim.02,mname1="S006407_145458",draw=FALSE)\
+> qtl4c.9.m.q1.eff\
+> qtl4c.9.m.q1.eff<-effectplot(qtl4c.9.m.sim.02,mname1="S000353_224758",draw=FALSE)\
+> qtl4c.9.m.q1.eff\
+> qtl4c.9.m.fit2.eff<-fitqtl(qtl4c.9.m.sim.02,qtl=qtl4c.9.m.refine2.02,formula=y~Q1+Q2,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4c.9.m.fit2.eff)\
+\
+> lodint(qtl4c.9.m.one.02,chr=5)\
+> lodint(qtl4c.9.m.one.02,chr=5,expandtomarkers=TRUE)\
+> lodint(qtl4c.9.m.refine2.02,qtl.index=1)\
+> lodint(qtl4c.9.m.refine2.02,qtl.index=1,expandtomarkers=TRUE)\
+> lodint(qtl4c.9.m.refine2.02,qtl.index=2)\
+> lodint(qtl4c.9.m.refine2.02,qtl.index=2,expandtomarkers=TRUE)\
+\
+=====================================================\
+## QTL4E.1 ##\
+> qtl4e.m<-read.cross(format="csv",file="4E_m_lg5miss20_mindp5_map4_qtl.csv")\
+> qtl4e.m.gp.02<-calc.genoprob(qtl4e.m,step=0.2,map.function=c("kosambi"),error.prob=0.001)\
+> qtl4e.m.one.02<-scanone(qtl4e.m.gp.02)\
+> summary(qtl4e.m.one.02)\
+> qtl4e.m.one.02.imp<-scanone(qtl4e.m.sim.02,method="imp")\
+> summary(qtl4e.m.one.02.imp)\
+> qtl4e.m.two.02<-scantwo(qtl4e.m.gp.02)\
+> summary(qtl4e.m.two.02)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 > qtl4e.m.one.02.perm<-scanone(qtl4e.m.gp.02, n.perm=20000, verbose=FALSE)\
+> summary(qtl4e.m.one.02.perm)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 > qtl4e.m.sim.02<-sim.geno(qtl4e.m.gp.02,step=0.2,n.draw=10000,map.function=c("kosambi"),err=0.001)\
+> qtl4e.m.perm2.02<-scantwo(qtl4e.m.sim.02,method="hk",n.perm=1000)\
+> summary(qtl4e.m.perm2.02)\
+> qtl4e.m.pen.02<-calc.penalties(qtl4e.m.perm2.02)\
+> print(qtl4e.m.pen.02)\
+\
+> qtl4e.m.make1.02<-makeqtl(qtl4e.m.sim.02,chr=5,pos=26)\
+> qtl4e.m.refine1.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make1.02,formula=y~Q1,verbose=FALSE)\
+> summary(qtl4e.m.refine1.02)\
+> qtl4e.m.fit.refine1.02<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine1.02,formula=y~Q1)\
+> summary(qtl4e.m.fit.refine1.02)\
+> qtl4e.m.add1<-addqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine1.02,formula=y~Q1+Q2)\
+> summary(qtl4e.m.add1)\
+\
+> qtl4e.m.make2.02<-makeqtl(qtl4e.m.sim.02,chr=c(3,5),pos=c(71.6,26.2))\
+> qtl4e.m.refine2.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make2.02,formula=y~Q1+Q2,verbose=FALSE)\
+> summary(qtl4e.m.refine2.02)\
+> addint(qtl4e.m.sim.02,qtl=qtl4e.m.refine2.02,formula=y~Q1+Q2)\
+> qtl4e.m.fit.refine2.02<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine2.02,formula=y~Q1+Q2)\
+> summary(qtl4e.m.fit.refine2.02)\
+> qtl4e.m.add2<-addqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine2.02,formula=y~Q1+Q2+Q3) \
+> summary(qtl4e.m.add2)\
+\
+> qtl4e.m.make3.02<-makeqtl(qtl4e.m.sim.02,chr=c(3,5,7),pos=c(71.6,26.2,1.19))\
+> qtl4e.m.refine3.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make3.02,formula=y~Q1+Q2+Q3,verbose=FALSE)\
+> summary(qtl4e.m.refine3.02)\
+> addint(qtl4e.m.sim.02,qtl=qtl4e.m.refine3.02,formula=y~Q1+Q2+Q3)\
+> qtl4e.m.fit.refine3.02<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine3.02,formula=y~Q1+Q2+Q3)\
+> summary(qtl4e.m.fit.refine3.02)\
+> qtl4e.m.add3<-addqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine3.02,formula=y~Q1+Q2+Q3+Q4)\
+> summary(qtl4e.m.add3)\
+\
+> qtl4e.m.make4.02<-makeqtl(qtl4e.m.sim.02,chr=c(1,3,5,7),pos=c(112.5,71.6,26.2,1.19))\
+> qtl4e.m.refine4.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make4.02,formula=y~Q1+Q2+Q3+Q4,verbose=FALSE)\
+> summary(qtl4e.m.refine4.02)\
+> qtl4e.m.fit.refine4.02<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine4.02,formula=y~Q1+Q2+Q3+Q4)\
+> summary(qtl4e.m.fit.refine4.02)\
+> addint(qtl4e.m.sim.02,qtl=qtl4e.m.refine4.02,formula=y~Q1+Q2+Q3+Q4)\
+> qtl4e.m.add4<-addqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine4.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+> summary(qtl4e.m.add4)\
+\
+> qtl4e.m.make5.02<-makeqtl(qtl4e.m.sim.02,chr=c(1,3,4,5,7),pos=c(112.5,71.6,0,26.2,0))\
+> qtl4e.m.refine5.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make5.02,formula=y~Q1+Q2+Q3+Q4+Q5,verbose=FALSE)\
+> summary(qtl4e.m.refine5.02)\
+> qtl4e.m.fit.refine5.02<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine5.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+> summary(qtl4e.m.fit.refine5.02)\
+> addint(qtl4e.m.sim.02,qtl=qtl4e.m.refine5.02,formula=y~Q1+Q2+Q3+Q4+Q5)\
+\
+> qtl4e.m.refine5.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make5.02,formula=y~Q1+Q3+Q4+Q2:Q5,verbose=FALSE)\
+> summary(qtl4e.m.refine5.02)\
+> qtl4e.m.fit.refine5.02.int<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine5.02,formula=y~Q1+Q3+Q4+Q2:Q5)\
+> summary(qtl4e.m.fit.refine5.02.int)\cf2 \
+\cf0 >  qtl4e.m.add5<-addqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine5.02,formula=y~Q1+Q3+Q4+Q2:Q5)\
+> summary(qtl4e.m.add5)\
+\
+> qtl4e.m.make6.02<-makeqtl(qtl4e.m.sim.02,chr=c(1,3,4,5,5,7),pos=c(112.5,71.6,0,26.2,28,0))\
+> qtl4e.m.make6.02<-makeqtl(qtl4e.m.sim.02,chr=c(1,3,4,5,7,5),pos=c(112.5,71.6,0,26.2,0,28))\
+> qtl4e.m.refine6.02<-refineqtl(qtl4e.m.sim.02,qtl=qtl4e.m.make6.02,formula=y~Q1+Q3+Q4+Q2:Q5+Q6,verbose=FALSE)\
+> summary(qtl4e.m.refine6.02)\
+> qtl4e.m.fit.refine6.02.int<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine6.02,formula=y~Q1+Q3+Q4+Q2:Q5+Q6)\
+> summary(qtl4e.m.fit.refine6.02.int)\
+\
+> qtl4e.m.fit.refine6.02.int$lod-qtl4e.m.fit.refine5.02.int$lod\
+> qtl4e.m.fit.refine2.02$lod-qtl4e.m.fit.refine1.02$lod\
+> qtl4e.m.fit.refine3.02$lod-qtl4e.m.fit.refine2.02$lod\
+> qtl4e.m.fit.refine4.02$lod-qtl4e.m.fit.refine3.02$lod\
+> qtl4e.m.fit.refine5.02$lod-qtl4e.m.fit.refine4.02$lod\
+> qtl4e.m.fit.refine5.02.int$lod-qtl4e.m.fit.refine4.02$lod\
+\
+> find.marker(qtl4e.m,chr=1,pos=112.5)\
+> find.marker(qtl4e.m,chr=3,pos=70.6)\
+> find.marker(qtl4e.m,chr=4,pos=0)\
+> find.marker(qtl4e.m,chr=5,pos=26.2)\
+> find.marker(qtl4e.m,chr=7,pos=0)\
+> qtl4e.m.q1.eff<-effectplot(qtl4e.m.sim.02,mname1="S003438_119273",draw=FALSE)\
+> qtl4e.m.q1.eff\
+> qtl4e.m.q2.eff<-effectplot(qtl4e.m.sim.02,mname1="S000650_487788",draw=FALSE)\
+> qtl4e.m.q2.eff\
+> qtl4e.m.q3.eff<-effectplot(qtl4e.m.sim.02,mname1="S000376_572963",draw=FALSE)\
+> qtl4e.m.q3.eff\
+> qtl4e.m.q4.eff<-effectplot(qtl4e.m.sim.02,mname1="S000353_224758",draw=FALSE)\
+> qtl4e.m.q4.eff\
+> qtl4e.m.q5.eff<-effectplot(qtl4e.m.sim.02,mname1="S001612_322793",draw=FALSE)\
+> qtl4e.m.q5.eff\
+> qtl4e.m.eff5.02<-fitqtl(qtl4e.m.sim.02,qtl=qtl4e.m.refine5.02,formula=y~Q1+Q3+Q4+Q2:Q5,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4e.m.eff5.02)\
+\
+> lodint(qtl4e.m.one.02,chr=5)\
+> lodint(qtl4e.m.one.02,chr=5,expandtomarker=TRUE)\
+> lodint(qtl4e.m.refine5.02,qtl.index=1)\
+> lodint(qtl4e.m.refine5.02,qtl.index=1,expandtomarker=TRUE)\
+> lodint(qtl4e.m.refine5.02,qtl.index=2)\
+> lodint(qtl4e.m.refine5.02,qtl.index=2,expandtomarker=TRUE)\
+> lodint(qtl4e.m.refine5.02,qtl.index=3)\
+> lodint(qtl4e.m.refine5.02,qtl.index=3,expandtomarker=TRUE)\
+> lodint(qtl4e.m.refine5.02,qtl.index=4)\
+> lodint(qtl4e.m.refine5.02,qtl.index=4,expandtomarker=TRUE)\
+> lodint(qtl4e.m.refine5.02,qtl.index=5)\
+> lodint(qtl4e.m.refine5.02,qtl.index=5,expandtomarker=TRUE)\
+}

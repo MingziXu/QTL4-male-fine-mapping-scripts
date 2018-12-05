@@ -1,0 +1,227 @@
+==========================================================================
+I. Gene Prediction Using Maker Pipeline
+
+1. Mask repeats
+
+sudo /usr/local/RepeatModeler-open-1.0.10/RepeatModeler -pa 20 -database /data/bowtieindexes/Lakoh057scf > /data/GBS_Xu/annotation/repeat_mask/Lakoh057scf.out
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+2. get files ready for maker
+mingzi@cornell-X9DAi:/data/software/maker/bin$ sudo /data/software/maker/bin/maker -CTL
+
+2.1 ## make genome file ##	
+	2.1.1 ## index reference fa file ##
+	sudo samtools faidx /data/bowtieindexes/Lakoh057scf.fa
+	2.1.2 ## make prediction genome fa file ##
+	sudo samtools faidx /data/bowtieindexes/Lakoh057scf.fa Lko057S000933 Lko057S001839 Lko057S003497 Lko057S001239 Lko057S000353 Lko057S001371 Lko057S006506 > /data/GBS_Xu/annotation/repeat_mask/peakscaffold7.fa
+	2.1.3 ## make training genome fa: 10 longest scaffolds + 7 peak scaffolds ##
+sudo samtools faidx /data/bowtieindexes/Lakoh057scf.fa Lko057S000933 Lko057S001839 Lko057S003497 Lko057S001239 Lko057S000353 Lko057S001371 Lko057S006506 Lko057S001792 Lko057S000668 Lko057S000773 Lko057S001183 Lko057S001005 Lko057S001930 Lko057S003838 Lko057S001617 Lko057S002068 Lko057S000238 > /data/GBS_Xu/annotation/repeat_mask/trainingscaffold.fa
+
+2.2 ## map RNAseq reads to reference genome using Tophat and cufflinks ##
+	2.2.1 index reference	
+	sudo samtools faidx /data/bowtieindexes/Lakoh057scf.fa
+
+	2.2.2 ## map RNAseq reads to reference ##	
+	sudo /data/software/00_SOURCES/tophat-2.0.13.Linux_x86_64/tophat -o /data/GBS_Xu/annotation/maker/S55_reads_r1 -p 10 --no-coverage-search /data/bowtieindexes/Lakoh057scf /data/LacerRNASeq/00_raw/Lacer_female_RNAseq_R1.fastq.bz2,/data/LacerRNASeq/00_raw/Lacer_male_RNAseq_R1.fastq /data/LacerRNASeq/00_raw/Lacer_female_RNAseq_R2.fastq.bz2,/data/LacerRNASeq/00_raw/Lacer_male_RNAseq_R2.fastq 
+
+	2.2.3 ## link reads into transcripts using cufflink ##	
+	sudo samtools sort -o /data/GBS_Xu/annotation/maker/S55_reads_r1/accepted_hits_sorted.bam /data/GBS_Xu/annotation/maker/S55_reads_r1/accepted_hits.bam
+	sudo /data/software/00_SOURCES/cufflinks-2.2.1.Linux_x86_64/cufflinks -o /data/GBS_Xu/annotation/maker -p 8 -b /data/bowtieindexes/Lakoh057scf.fa -u /data/GBS_Xu/annotation/maker/S55_reads_r1/accepted_hits_sorted.bam > /data/GBS_Xu/annotation/maker/S55_reads_r1/Lacer_mf_RNAseq_S057_cufflinks.log
+	## convert gft to gff3 ##
+	cd /data/software/maker/bin
+	/data/software/maker/bin/cufflinks2gff3 /data/GBS_Xu/annotation/maker/S55_reads_r1/transcripts.gtf > /data/GBS_Xu/annotation/maker/S55_reads_r1/transcripts.gff3
+	## convert gtf to fa ##
+	sudo /data/software/cufflinks-2.2.1.Linux_x86_64/gffread -w /data/GBS_Xu/annotation/maker/S55_reads_r1/lc_cufflinks_057_transcriptome.fa -g /data/bowtieindexes/Lakoh057scf.fa /data/GBS_Xu/annotation/maker/S55_reads_r1/transcripts.gtf  
+
+	## map transcriptome back to genome using Gmap ##
+	sudo /data/software/Gmap/gmap-2017-05-08/src/gmap -D /data/GBS_Xu/annotation/gmap -d gmap_db -t 8 -A -f gff3_gene /data/GBS_Xu/annotation/maker/S55_reads_r1/lc_cufflinks_057_transcriptome.fa > /data/GBS_Xu/annotation/gmap/lc_cufflinks_transcriptome_GMAP
+	
+	2.2.4 ## evaluate transcriptome quality ##
+	sudo /usr/local/bin/blastx -query /data/GBS_Xu/annotation/maker/S55_reads_r1/lc_cufflinks_057_transcriptome.fa -db /data/GBS_Xu/annotation/maker/uniprot_sprot.fasta -out /data/GBS_Xu/annotation/transcriptome/lc_cufflinks_057_transcriptome_blastx_uniprot.outfmt6 -evalue 1e-15 -num_threads 16 -max_target_seqs 1 -outfmt "6 qlen"
+
+	export AUGUSTUS_CONFIG_PATH=/data/software/augustus-3.2.3/config
+	export PATH=/data/software/augustus-3.2.3/scripts:/data/software/augustus-3.2.3/bin:$PATH
+	python /data/software/BUSCO/busco/BUSCO.py -i /data/GBS_Xu/annotation/maker/S55_reads_r1/lc_cufflinks_057_transcriptome.fa -o arthropoda -l /data/software/BUSCO/datasets/arthropoda_odb9/ -m genome -c 10 -sp fly
+
+	## total length:547,690,736
+	## mean coverage: 350.49
+	## median contig length: 2709
+	## N50: 43271
+	## 63383 mapped back to Lko057	
+	## 98.423% mapping rate
+
+2.3 ## map ESTs to Lko057 using GMAP ##	--DONE
+	2.3.1 ## build database for GMAP ##	
+	sudo /data/software/Gmap/gmap-2017-05-08/util/gmap_build -d gmap_db /data/bowtieindexes/Lakoh057scf.fa
+	2.3.2 ## map ESTs to reference and output gff ##
+	samtools faidx /data/GBS_Xu/annotation/gmap/Laupala_NCBI_ESTs.fasta
+	sudo /data/software/Gmap/gmap-2017-05-08/src/gmap -D /data/GBS_Xu/annotation/gmap -d gmap_db -t 8 -A -f gff3_gene /data/GBS_Xu/annotation/gmap/Laupala_NCBI_ESTs.fasta > /data/GBS_Xu/annotation/gmap/lk_ESTs_mapped
+	grep '>' /data/GBS_Xu/annotation/gmap/Laupala_NCBI_ESTs.fasta | wc -l
+	
+2.4 ## map transcriptome to Lko057 using GMAP ##	
+	2.4.1 ## build database ## 
+	2.4.2 ## map transcriptome to reference and output gff ##
+	sudo /data/software/Gmap/gmap-2017-05-08/src/gmap -D /data/GBS_Xu/annotation/gmap -d gmap_db -t 15 --cross-species -A -S -f gff3_gene /data/GBS_Xu/annotation/gmap/Trinity-GG_LaCer_transcriptome.fasta > /data/GBS_Xu/annotation/gmap/lc_trinitygg_transcriptome_mapped
+	grep '>' /data/GBS_Xu/annotation/gmap/Trinity-GG_LaCer_transcriptome.fasta | wc -l
+	
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+3. run Maker round 1
+cd /data/GBS_Xu/annotation/maker/reS204_tr17_r1 
+sudo /data/software/maker/bin/maker -base reS204_tr17_r1 maker_opts.ctl maker_bopts.ctl maker_exe.ctl
+/data/software/maker/bin/gff3_merge -s -d /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1.maker.output/reS204_tr17_r1_master_datastore_index.log >/data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_all.gff
+/data/software/maker/bin/fasta_merge -d /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1.maker.output/reS204_tr17_r1_master_datastore_index.log
+/data/software/maker/bin/gff3_merge -s -n -d /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1.maker.output/reS204_tr17_r1_master_datastore_index.log > /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_noseq.gff
+
+cd /data/GBS_Xu/annotation/maker/reS204_tr17_Trinity_r1 
+sudo /data/software/maker/bin/maker -base reS204_tr17_Trinity_r1 maker_opts.ctl maker_bopts.ctl maker_exe.ctl
+
+## get evidence alignment files to be used later ##
+awk '{ if ($2 == "est2genome") print $0 }' /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_noseq.gff > /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_est2genome.gff
+awk '{ if ($2 == "cdna2genome") print $0 }' /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_noseq.gff > /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_cdna2genome.gff
+awk '{ if ($2 == "protein2genome") print $0 }' /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_noseq.gff > /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_protein2genome.gff
+
+## get Gene # and mean length ##
+cat /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_all.gff | awk '{ if ($3 == "gene") print $0 }' | awk '{ sum += ($5 - $4) } END { print NR, sum / NR }'
+
+## get AED profile ##
+perl /data/software/Genome_annotation/AED_cdf_generator.pl -b 0.025 /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_all.gff
+
+--------------------------------
+4. training with SNAP round 1
+cd /data/GBS_Xu/annotation/snap/reS204_tr17_r1
+sudo /data/software/maker/bin/maker2zff -x 0.5 -l 50 -d /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1.maker.output/reS204_tr17_r1_master_datastore_index.log
+sudo mv genome.ann reS204_tr17_r1.zff.aed0.5l50.ann 
+sudo mv genome.dna reS204_tr17_r1.zff.aed0.5l50.dna
+sudo /data/software/snap/fathom reS204_tr17_r1.zff.aed0.5l50.ann reS204_tr17_r1.zff.aed0.5l50.dna -gene-stats > gene-stats.aed0.5l50.log
+sudo /data/software/snap/fathom reS204_tr17_r1.zff.aed0.5l50.ann reS204_tr17_r1.zff.aed0.5l50.dna -validate > validate.aed0.5l50.log
+52 genes, 52 OK, 41 warnings, 0 errors
+sudo /data/software/snap/fathom reS204_tr17_r1.zff.aed0.5l50.ann reS204_tr17_r1.zff.aed0.5l50.dna -categorize 1000 > categorize.aed0.5l50.log
+sudo /data/software/snap/fathom reS204_tr17_r1.zff.aed0.5l50.ann reS204_tr17_r1.zff.aed0.5l50.dna -export 1000 -plus > uni-plus.aed0.5l50.log
+sudo /data/software/snap/forge /data/GBS_Xu/annotation/snap/reS204_tr17_r1/export.ann /data/GBS_Xu/annotation/snap/reS204_tr17_r1/export.dna > /data/GBS_Xu/annotation/snap/reS204_tr17_r1/forge.log
+sudo /data/software/snap/hmm-assembler.pl reS204_tr17_r1.zff.aed0.5l50 /data/GBS_Xu/annotation/snap/reS204_tr17_r1 > /data/GBS_Xu/annotation/snap/reS204_tr17_r1/reS204_tr17_r1.zff.aed0.5l50.hmm
+
+-----------------------------------
+5. training with Augustus round 1
+awk -v OFS="\t" '{ if ($3 == "mRNA") print $1, $4, $5 }' /data/GBS_Xu/annotation/maker/reS204_tr17_r1/reS204_tr17_r1_noseq.gff | \
+  awk -v OFS="\t" '{ if ($2 < 1000) print $1, "0", $3+1000; else print $1, $2-1000, $3+1000 }' > /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/reS204_tr17_r1_all.maker.transcripts1000.pos
+ 
+cd /data/GBS_Xu/annotation/augustus/reS204_tr17_r1
+samtools faidx /data/GBS_Xu/annotation/repeat_mask/trainingscaffold.fa
+/usr/bin/bedtools getfasta -fi /data/GBS_Xu/annotation/repeat_mask/trainingscaffold.fa -bed /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/reS204_tr17_r1_all.maker.transcripts1000.pos -fo /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/reS204_tr17_r1_all.maker.transcripts1000.pos.fasta
+
+export AUGUSTUS_CONFIG_PATH=/data/software/augustus-3.2.3/config
+export PATH=/data/software/augustus-3.2.3/scripts:/data/software/augustus-3.2.3/bin:$PATH
+export PATH=/data/software/hmmer-3.1b2/src:/usr/lib/emboss:$PATH
+
+python3 /data/software/BUSCO/busco/BUSCO.py -o reS204_tr17_r1 -l /data/software/BUSCO/datasets/insecta_odb9 -i /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/reS204_tr17_r1_all.maker.transcripts1000.pos.fasta -c 12 --long -sp fly -z --augustus_parameters='--progress=true' -m genome > /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/BUSCO.log
+
+cd /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/run_reS204_tr17_r1/augustus_output/retraining_parameters
+rename 's/BUSCO_reS204_tr17_r1_1220449589/Laupala_kohalensis_reS204_tr17_r1/g' *
+sed -i 's/BUSCO_reS204_tr17_r1_1220449589/Laupala_kohalensis_reS204_tr17_r1/g' /data/GBS_Xu/annotation/augustus/reS204_tr17_r1/run_reS204_tr17_r1/augustus_output/retraining_parameters/Laupala_kohalensis_reS204_tr17_r1_parameters.cfg
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+6. maker r2 use SNAP and Augustus models
+cd /data/GBS_Xu/annotation/maker/reS204_tr17_r2 
+sudo /data/software/maker/bin/maker -base reS204_tr17_r2 maker_opts.ctl maker_bopts.ctl maker_exe.ctl
+/data/software/maker/bin/gff3_merge -s -d /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2.maker.output/reS204_tr17_r2_master_datastore_index.log >/data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2_all.gff
+/data/software/maker/bin/fasta_merge -d /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2.maker.output/reS204_tr17_r2_master_datastore_index.log
+/data/software/maker/bin/gff3_merge -s -n -d /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2.maker.output/reS204_tr17_r2_master_datastore_index.log > /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2_noseq.gff
+
+cat /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2_all.gff | awk '{ if ($3 == "gene") print $0 }' | awk '{ sum += ($5 - $4) } END { print NR, sum / NR }'
+perl /data/software/Genome_annotation/AED_cdf_generator.pl -b 0.025 /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2_all.gff
+
+--------------------------------
+7. reraining with SNAP
+cd /data/GBS_Xu/annotation/snap/reS204_tr17_r2
+sudo /data/software/maker/bin/maker2zff -n -d /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2.maker.output/reS204_tr17_r2_master_datastore_index.log
+sudo mv genome.ann reS204_tr17_r2.zff.n.ann 
+sudo mv genome.dna reS204_tr17_r2.zff.n.dna
+sudo /data/software/snap/fathom reS204_tr17_r2.zff.n.ann reS204_tr17_r2.zff.n.dna -gene-stats > gene-stats.n.log
+sudo /data/software/snap/fathom reS204_tr17_r2.zff.n.ann reS204_tr17_r2.zff.n.dna -validate > validate.n.log
+sudo /data/software/snap/fathom reS204_tr17_r2.zff.n.ann reS204_tr17_r2.zff.n.dna -categorize 1000 > categorize.n.log
+sudo /data/software/snap/fathom reS204_tr17_r2.zff.n.ann reS204_tr17_r2.zff.n.dna -export 1000 -plus > uni-plus.n.log
+sudo /data/software/snap/forge /data/GBS_Xu/annotation/snap/reS204_tr17_r2/export.ann /data/GBS_Xu/annotation/snap/reS204_tr17_r2/export.dna > /data/GBS_Xu/annotation/snap/reS204_tr17_r2/forge.log
+sudo /data/software/snap/hmm-assembler.pl reS204_tr17_r2.zff.n /data/GBS_Xu/annotation/snap/reS204_tr17_r2 > /data/GBS_Xu/annotation/snap/reS204_tr17_r2/reS204_tr17_r2.zff.n.hmm
+
+---------------------------
+8. retraining with Augustus
+awk -v OFS="\t" '{ if ($3 == "mRNA") print $1, $4, $5 }' /data/GBS_Xu/annotation/maker/reS204_tr17_r2/reS204_tr17_r2_noseq.gff | \
+  awk -v OFS="\t" '{ if ($2 < 1000) print $1, "0", $3+1000; else print $1, $2-1000, $3+1000 }' > /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/reS204_tr17_r2_all.maker.transcripts1000.pos
+ 
+cd /data/GBS_Xu/annotation/augustus/reS204_tr17_r2
+samtools faidx /data/GBS_Xu/annotation/repeat_mask/trainingscaffold.fa
+/usr/bin/bedtools getfasta -fi /data/GBS_Xu/annotation/repeat_mask/trainingscaffold.fa -bed /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/reS204_tr17_r2_all.maker.transcripts1000.pos -fo /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/reS204_tr17_r2_all.maker.transcripts1000.pos.fasta
+
+export AUGUSTUS_CONFIG_PATH=/data/software/augustus-3.2.3/config
+export PATH=/data/software/augustus-3.2.3/scripts:/data/software/augustus-3.2.3/bin:$PATH
+export PATH=/data/software/hmmer-3.1b2/src:/usr/lib/emboss:$PATH
+
+python3 /data/software/BUSCO/busco/BUSCO.py -o reS204_tr17_r2 -l /data/software/BUSCO/datasets/insecta_odb9 -i /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/reS204_tr17_r2_all.maker.transcripts1000.pos.fasta -c 12 --long -sp fly -z --augustus_parameters='--progress=true' -m genome > /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/BUSCO.log
+
+cd /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/run_reS204_tr17_r2/augustus_output/retraining_parameters
+rename 's/BUSCO_reS204_tr17_r2_3816648982/Laupala_kohalensis_reS204_tr17_r2/g' *
+sed -i 's/BUSCO_reS204_tr17_r2_3816648982/Laupala_kohalensis_reS204_tr17_r2/g' /data/GBS_Xu/annotation/augustus/reS204_tr17_r2/run_reS204_tr17_r2/augustus_output/retraining_parameters/Laupala_kohalensis_reS204_tr17_r2_parameters.cfg
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+9. maker round 3
+cd /data/GBS_Xu/annotation/maker/reS204_tr17_r3 
+sudo /data/software/maker/bin/maker -base reS204_tr17_r3 maker_opts.ctl maker_bopts.ctl maker_exe.ctl
+
+/data/software/maker/bin/gff3_merge -s -d /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3.maker.output/reS204_tr17_r3_master_datastore_index.log >/data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3_all.gff
+/data/software/maker/bin/fasta_merge -d /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3.maker.output/reS204_tr17_r3_master_datastore_index.log
+/data/software/maker/bin/gff3_merge -s -n -d /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3.maker.output/reS204_tr17_r3_master_datastore_index.log > /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3_noseq.gff
+
+cat /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3_all.gff | awk '{ if ($3 == "gene") print $0 }' | awk '{ sum += ($5 - $4) } END { print NR, sum / NR }'
+perl /data/software/Genome_annotation/AED_cdf_generator.pl -b 0.025 /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3_all.gff
+
+sudo /data/software/maker/bin/maker2zff -n -d /data/GBS_Xu/annotation/maker/reS204_tr17_r3/reS204_tr17_r3.maker.output/reS204_tr17_r3_master_datastore_index.log
+sudo mv genome.ann reS204_tr17_r3.zff.n.ann 
+sudo mv genome.dna reS204_tr17_r3.zff.n.dna
+sudo /data/software/snap/fathom reS204_tr17_r3.zff.n.ann reS204_tr17_r3.zff.n.dna -gene-stats > gene-stats.n.log
+sudo /data/software/snap/fathom reS204_tr17_r3.zff.n.ann reS204_tr17_r3.zff.n.dna -validate > validate.n.log
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+10. Annotate predicted genes using BLAST2GO
+
+
+
+===============================================================================
+===============================================================================
+II. Drosophila candidate identification using reciprocal blast
+
+1. prepare and mask blast database
+
+sudo /usr/local/bin/makeblastdb -in /data/GBS_Xu/annotation/blast/Lakoh057scf.fa -dbtype nucl -parse_seqids
+sudo /usr/local/bin/dustmasker -in /data/GBS_Xu/annotation/blast/Lakoh057scf.fa -infmt blastdb -parse_seqids -outfmt maskinfo_asn1_bin -out /data/GBS_Xu/annotation/blast/Lakoh057scf_dust.asnb
+sudo /usr/local/bin/makeblastdb -in /data/GBS_Xu/annotation/blast/Lakoh057scf.fa -input_type blastdb -dbtype nucl -parse_seqids -mask_data /data/GBS_Xu/annotation/blast/Lakoh057scf_dust.asnb -out /data/GBS_Xu/annotation/blast/Lakoh057scf_masked.fa
+
+sudo /usr/local/bin/segmasker -in /data/Blast_DB/Dmel_proteome/Dmel_prot.fasta -infmt blastdb -parse_seqids -outfmt maskinfo_asn1_bin -out /data/Blast_DB/Dmel_proteome/Dmel_prot.asnb
+sudo /usr/local/bin/makeblastdb -in /data/Blast_DB/Dmel_proteome/Dmel_prot.fasta -input_type blastdb -dbtype prot -parse_seqids -mask_data /data/Blast_DB/Dmel_proteome/Dmel_prot.asnb -out /data/Blast_DB/Dmel_proteome/Dmel_prot_masked.fasta
+/usr/local/bin/blastdbcmd -db /data/Blast_DB/Dmel_proteome/Dmel_prot_masked.fasta -info
+
+---------------------------------------
+
+2. blast translated Dro candidate genes against genome 
+/usr/local/bin/tblastx -db /data/GBS_Xu/annotation/blast/Lakoh057scf_masked.fa -db_soft_mask 11 -query /data/GBS_Xu/annotation/blast/Dro_candidate_gene/databases/candidate_gene.fa -evalue 1 -num_threads 20 -outfmt 6 -out /data/GBS_Xu/annotation/blast/Dro_candidate_gene/results/tblastx_Lko057_candidate_gene_masked.txt
+
+## after examining the result, I hard masked retroelements related sequences in the candidate genes ##
+/usr/bin/bedtools maskfasta -fi /data/GBS_Xu/annotation/blast/Dro_candidate_gene/databases/candidate_gene.fa -bed /data/GBS_Xu/annotation/blast/Dro_candidate_gene/databases/retro.bed -fo /data/GBS_Xu/annotation/blast/Dro_candidate_gene/databases/candidate_gene_retroout.fa 
+
+/usr/local/bin/tblastx -db /data/GBS_Xu/annotation/blast/Lakoh057scf_masked.fa -db_soft_mask 11 -query /data/GBS_Xu/annotation/blast/Dro_candidate_gene/databases/candidate_gene_retroout.fa -evalue 10 -num_threads 22 -outfmt 6 -out /data/GBS_Xu/annotation/blast/Dro_candidate_gene/results/tblastx_Lko057_candidate_gene_masked_retroout_E10.txt
+
+/usr/local/bin/tblastx -db /data/GBS_Xu/annotation/blast/Lakoh057scf_masked.fa -db_soft_mask 11 -query /data/GBS_Xu/annotation/blast/Dro_candidate_gene/databases/candidate_gene_retroout.fa -evalue 10 -num_threads 22 -outfmt 5 -out /data/GBS_Xu/annotation/blast/Dro_candidate_gene/results/tblastx_Lko057_candidate_gene_masked_retroout_E10.xml
+
+
+3. blast lc transcriptome against Dmel proteinome
+sudo /usr/local/bin/blastx -task blastx -db /data/Blast_DB/Dmel_proteome/Dmel_prot_masked.fasta -db_soft_mask 21 -query /data/GBS_Xu/annotation/transcriptome/lc_cufflinks_057_transcriptome.fa -evalue 1 -num_threads 3 -outfmt 6 -out /data/GBS_Xu/annotation/blast/Dro_candidate_gene/results/blastx_Dmelprot_LCcufflinks057_1E-5.txt
+
+##get all protein accessions for Dro candidate genes, subset txt results for those with hit to candidate gene proteins using grep##
+chmod 755 /data/GBS_Xu/annotation/blast/Dro_candidate_gene/results/Cufflinks_transcripts_subset_Dmel_genes.sh
+/data/GBS_Xu/annotation/blast/Dro_candidate_gene/results/Cufflinks_transcripts_subset_Dmel_genes.sh
