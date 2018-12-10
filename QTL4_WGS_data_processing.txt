@@ -1,0 +1,155 @@
+1. read processing
+sudo cutadapt -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGCCGTCTTCTGCTTG -A GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG -q 30 -l 50 --minimum-length 25 -o /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_R1_adp1q30l50.fastq -p /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_R2_adp1q30l50.fastq /data/QTL4_WGSreads/2690-Ellison_QTL4E_Lk_R1.fastq.gz /data/QTL4_WGSreads/2690-Ellison_QTL4E_Lk_R2.fastq.gz
+
+sudo cutadapt -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACACTTGAATCTCGTATGCCGTCTTCTGCTTG -A GATCGGAAGAGCACACGTCTGAACTCCAGTCACACTTGAATCTCGTATGCCGTCTTCTGCTTG -q 30 -l 50 --minimum-length 25 -o /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_R0_adp1q30l50.fastq -p /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_R2_adp1q30l50.fastq /data/QTL4_WGSreads/2691-ellison_QTL4E_Lp_R0.fastq.gz /data/QTL4_WGSreads/2691-ellison_QTL4E_Lp_R2.fastq.gz
+
+
+expr $(cat /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_R1_adp1q30l50.fastq | wc -l) / 4
+expr $(cat /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_R2_adp1q30l50.fastq | wc -l) / 4
+expr $(cat /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_R0_adp1q30l50.fastq | wc -l) / 4
+expr $(cat /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_R2_adp1q30l50.fastq | wc -l) / 4
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2. read mapping use 057 version of the reference 
+
+sudo bowtie2 -t -p 8 -x /data/bowtieindexes/Lakoh057scf -1 /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_R1_adp1q30l50.fastq -2 /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_R2_adp1q30l50.fastq -S /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk.sam
+samtools view -F4 -Sb -o /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk.bam /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk.sam
+samtools sort -@ 8 /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk.bam -o /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_sorted.bam
+
+sudo bowtie2 -t -p 8 -x /data/bowtieindexes/Lakoh057scf -1 /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_R0_adp1q30l50.fastq -2 /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_R2_adp1q30l50.fastq -S /data/QTL4E_WGS/2691-ellison_QTL4E_Lp.sam
+samtools view -F4 -Sb -o /data/QTL4E_WGS/2691-ellison_QTL4E_Lp.bam /data/QTL4E_WGS/2691-ellison_QTL4E_Lp.sam
+samtools sort -@ 8 /data/QTL4E_WGS/2691-ellison_QTL4E_Lp.bam -o /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_sorted.bam
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+3. SNP calling in merged bam
+
+/data/GBS_Xu/softwares/bamaddrg/bamaddrg -b /data/QTL4E_WGS/2690-Ellison_QTL4E_Lk_sorted.bam -r 4E_rilf2_lk -s 4E_rilf2_lk -b /data/QTL4E_WGS/2691-ellison_QTL4E_Lp_sorted.bam -r 4E_rilf2_lp -s 4E_rilf2_lp > /data/QTL4E_WGS/QTL4E_rilf2_combined.bam
+
+samtools sort -@ 20 /data/QTL4E_WGS/QTL4E_rilf2_combined.bam -o /data/QTL4E_WGS/QTL4E_rilf2_combined_sorted.bam
+
+freebayes -i -X -u -b /data/QTL4E_WGS/QTL4E_rilf2_combined_sorted.bam -v /data/QTL4E_WGS/4E_rilf2_057_snp_mnc2.vcf -f /data/bowtieindexes/Lakoh057scf.fa --min-coverage 2 --read-mismatch-limit 2
+
+freebayes -b /data/QTL4E_WGS/bam_remap/QTL4E_rilf2_combined_sorted.bam -v /data/QTL4E_WGS/bam_remap/4E_rilf2_057_all_variants_mnc2.vcf -f /data/bowtieindexes/Lakoh057scf.fa --min-coverage 2 --read-mismatch-limit 2
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+4. obtain the stringent SNP set
+
+4.1 filter vcf for homozygous SNP with stringent criteria
+
+4.1.1 soft filtering
+vcftools --vcf /data/QTL4E_WGS/4E_rilf2_057_snp_mnc2.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.24 --max-missing 1 --minDP 5 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5.vcf
+After filtering, kept 1294291 out of a possible 5851899 Sites
+
+4.1.2 hard filtering
+/data/software/vcflib/bin/vcffilter -f "DP > 9 & QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil.vcf
+
+4.1.3 convert heterozygous alleles to N
+/data/software/vcflib/bin/vcffilter -g "! ( GT = 0/1 )" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_hetton.vcf
+
+4.1.4 filter out Ns again--now only homozygous sites in both individuals are left
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_hetton.vcf --remove-indels --min-alleles 2 --max-alleles 2 --max-missing 1 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly.vcf
+After filtering, kept 101035 out of a possible 1087780 Sites
+
+4.1.5 subset vcf for scaffolds we need
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly.vcf --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --chr Lko057S003101 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced.vcf
+After filtering, kept 4647 out of a possible 101035 Sites
+
+4.1.6 convert vcf to hmp
+cd /data/GBS_Xu/softwares/tassel4-standalone
+perl start_tassel.pl
+
+------------------------------------
+4.2 filtered out SNPs where (lp)=(ref)!=(lk)
+## this filtered out 271 out of 4025 SNPs on LG5 and 3 unplaced scaffolds ##
+
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced.vcf --exclude-positions /data/QTL4E_WGS/exexutive_scripts/4E_snp_to_exclude_stringent.txt --max-missing 1 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced_reffiltered.vcf
+After filtering, kept 3754 out of a possible 4025 Sites
+
+-----------------------------------
+4.3 obtain sites where lp !=ref and lk=N (no read mapped)
+
+4.3.1 obtain sites where genotypes are call with mindp 5
+vcftools --vcf /data/QTL4E_WGS/4E_rilf2_057_snp_mnc2.vcf --remove-indels --min-alleles 1 --max-alleles 2 --minDP 5 --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp5_LG5_unplaced.vcf
+After filtering, kept 84237 out of a possible 5851899 Sites
+
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp5_LG5_unplaced.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp5_LG5_unplaced_hardfil.vcf
+
+# from the above vcf, manually filter for sites where lk = N and lp != ref = homo
+# some of the Ns for lk are sites where there are reads for lk but depth <5, they may be a true N (lack of read) or may be any other genotype
+
+4.3.2 obtain sites where lk has 0 read mapped
+vcftools --vcf /data/QTL4E_WGS/4E_rilf2_057_snp_mnc2.vcf --remove-indels --min-alleles 1 --max-alleles 2 --minDP 1 --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp1_LG5_unplaced.vcf
+After filtering, kept 84237 out of a possible 5851899 Sites
+
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp1_LG5_unplaced.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp1_LG5_unplaced_hardfil.vcf
+
+# from the above vcf, filter for sites where lk = N, then cross reference these sites with sites called with mindp5 where lk=N and lp=lp to obtain sites where lk has 0 read mapped and lp=lp at mindp of 5
+
+------------------------------------
+4.4 prepare vcf file for snpEff
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced_reffiltered.vcf --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced_reffiltered_peakscaffolds.vcf
+After filtering, kept 1640 out of a possible 3754 Sites
+
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp5_LG5_unplaced_hardfil.vcf --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --exclude-positions /data/QTL4E_WGS/exexutive_scripts/4E_lk_no_mapped_lp_mindp5_snp_to_exclude.txt --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_snp_mina1_mindp5_LG5_unplaced_hardfil_refiltered_peakscaffolds.vcf
+After filtering, kept 24 out of a possible 40132 Sites
+
+=================================================================================
+## use maf 0.025 -- result in the same set of SNPs as using maf0.24##
+# homo in both males only #
+vcftools --vcf /data/QTL4E_WGS/SNP_mindp5_dp10/4E_rilf2_057_snp_mnc2.vcf --remove-indels --min-alleles 2 --max-alleles 2 --maf 0.025 --minDP 5 --max-missing 1 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5.vcf
+
+data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5.vcf > /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil.vcf
+
+/data/software/vcflib/bin/vcffilter -g "! ( GT = 0/1 )" /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil.vcf > /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_hetton.vcf
+
+vcftools --vcf /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_hetton.vcf --remove-indels --min-alleles 2 --max-alleles 2 --max-missing 1 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_homoonly.vcf
+
+vcftools --vcf /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_homoonly.vcf --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_homoonly_LG5_unplaced.vcf
+
+# filter out sites where lk != ref #
+vcftools --vcf /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_homoonly_LG5_unplaced.vcf --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --exclude-positions /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_snp_to_exclude.txt --max-missing 1 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_mindp5_maf0.025/4E_rilf2_snp_miss0_maf0.025_mindp5_hardfil_homoonly_LG5_unplaced_refiltered.vcf
+
+==============================================================================
+## call indels with the stringent criteria ##
+
+5.1.1 vcftools --vcf /data/QTL4E_WGS/bam_remap/4E_rilf2_057_all_variants_mnc2.vcf --keep-only-indels --min-alleles 2 --max-alleles 2 --maf 0.24 --max-missing 1 --minDP 5 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5.vcf
+
+5.1.2 hard filtering
+/data/software/vcflib/bin/vcffilter -f "DP > 9 & QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil.vcf
+
+5.1.3 convert heterozygous alleles to N
+/data/software/vcflib/bin/vcffilter -g "! ( GT = 0/1 )" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_hetton.vcf
+
+5.1.4 filter out Ns again--now only homozygous sites in both individuals are left
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_hetton.vcf --keep-only-indels --min-alleles 2 --max-alleles 2 --max-missing 1 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_homoonly.vcf
+After filtering, kept 11644 out of a possible 117160 Sites
+
+5.1.5 subset vcf for scaffolds we need
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_homoonly.vcf --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --chr Lko057S003101 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced.vcf
+
+5.1.6 convert vcf to hmp
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced.vcf --keep-only-indels --plink --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_miss0_maf0.24_mindp5_hardfil_homoonly_LG5_unplaced
+
+5.2 filtered out SNPs where (lp)=(ref)!=(lk)
+after filtering, only 1 indel left on peak scaffolds, and it's in the intergenic region
+
+5.3.1 obtain sites where genotypes are called with mindp 5
+vcftools --vcf /data/QTL4E_WGS/bam_remap/4E_rilf2_057_all_variants_mnc2.vcf --keep-only-indels --min-alleles 1 --max-alleles 2 --minDP 5 --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp5_LG5_unplaced.vcf
+
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp5_LG5_unplaced.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp5_LG5_unplaced_hardfil.vcf
+
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp5_LG5_unplaced_hardfil.vcf --keep-only-indels --plink --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp5_LG5_unplaced_hardfil
+
+# from the above vcf, manually filter for sites where lk = N and lp != ref = homo
+# some of the Ns for lk are sites where there are reads for lk but depth <5, they may be a true N (lack of read) or may be any other genotype
+5.3.2 obtain sites where lk has 0 read mapped
+vcftools --vcf /data/QTL4E_WGS/bam_remap/4E_rilf2_057_all_variants_mnc2.vcf --keep-only-indels --min-alleles 1 --max-alleles 2 --minDP 1 --chr Lko057S001371 --chr Lko057S000353 --chr Lko057S000933 --chr Lko057S003497 --chr Lko057S006506 --chr Lko057S005326 --chr Lko057S005269 --chr Lko057S006896 --chr Lko057S006807 --chr Lko057S001650 --chr Lko057S001239 --chr Lko057S001044 --chr Lko057S005519 --chr Lko057S000305 --chr Lko057S004564 --chr Lko057S001042 --chr Lko057S000091 --chr Lko057S005334 --chr Lko057S003838 --chr Lko057S001095 --chr Lko057S005967 --chr Lko057S002300 --recode --recode-INFO-all --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp1_LG5_unplaced.vcf
+
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp1_LG5_unplaced.vcf > /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp1_LG5_unplaced_hardfil.vcf
+
+vcftools --vcf /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp1_LG5_unplaced_hardfil.vcf --keep-only-indels --plink --out /data/QTL4E_WGS/SNP_stringent/4E_rilf2_indel_mina1_mindp1_LG5_unplaced_hardfil
+After filtering, kept 4972 out of a possible 4972 Sites
+
+# from the above vcf, filter for sites where lk = N, then cross reference these sites with sites called with mindp5 where lk=N and lp=lp to obtain sites where lk has 0 read mapped and lp=lp at mindp of 5
+# this identified 1 additional intergenic indels #
